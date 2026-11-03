@@ -41,7 +41,12 @@ const empty = fingerBones.filter((b) => !owned.get(b.name)).map((b) => b.name);
 ok(empty.length <= 2, `auto-rig weights: ${fingerBones.length - empty.length}/${fingerBones.length} finger bones drive vertices${empty.length ? ' (empty: ' + empty.join(',') + ')' : ''}`);
 
 // captured finger motion reaches the mannequin's fingers
-const b = fs.readFileSync('/tmp/demo.glb');
+// a synthetic capture (SOMA skeleton with curled fingers) straight from the capture engine's demo mode
+const { execFileSync } = await import('node:child_process');
+const capGlb = (await import('node:path')).join((await import('node:os')).tmpdir(), `jri-fingertest-${process.pid}.glb`);
+execFileSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), ['-m', 'jrcapture', 'demo', '-o', capGlb], { cwd: new URL('../capture/', import.meta.url), stdio: 'ignore' });
+const b = fs.readFileSync(capGlb);
+fs.rmSync(capGlb, { force: true });
 const src = await loadFromArrayBuffer(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength), 'cap.glb');
 for (const [name, tgt] of [['mannequin', buildDemoCharacter()], ['auto-rigged', rigged]]) {
   const clip = retargetClip(src, src.clips[0], tgt, { name: 'cap' });
