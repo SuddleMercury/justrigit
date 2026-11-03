@@ -199,15 +199,27 @@ function setWorldQuat(bone, q) {
 
 // Analytic two-bone IK: rotates upper & lower so `end` reaches `target`, keeping the knee
 // on the side it was already bending towards and the foot's world orientation unchanged.
-export function solveTwoBone(upper, lower, end, target) {
+// poleHint: the direction the knee should bend toward (e.g. where the toes point). Without it a nearly
+// straight leg can flip and bend backwards, because the current knee offset is tiny and noisy.
+export function solveTwoBone(upper, lower, end, target, poleHint = null) {
   const A = upper.getWorldPosition(_v()), B = lower.getWorldPosition(_v()), C = end.getWorldPosition(_v());
   const endQ = end.getWorldQuaternion(new THREE.Quaternion());
   const l1 = A.distanceTo(B), l2 = B.distanceTo(C);
   const AT = target.clone().sub(A);
   const d = THREE.MathUtils.clamp(AT.length(), Math.abs(l1 - l2) + 1e-4, l1 + l2 - 1e-4);
   const u = AT.lengthSq() > 1e-12 ? AT.normalize() : C.clone().sub(A).normalize();
-  let pole = B.clone().sub(A); pole.sub(u.clone().multiplyScalar(pole.dot(u)));
-  if (pole.lengthSq() < 1e-10) pole = new THREE.Vector3(0, 0, 1).sub(u.clone().multiplyScalar(u.z));
+  const perp = (v) => v.clone().sub(u.clone().multiplyScalar(v.dot(u)));
+  let pole = perp(B.clone().sub(A));
+  const bent = pole.length() > 0.05 * l1;
+  if (poleHint) {
+    const hint = perp(poleHint);
+    if (hint.lengthSq() > 1e-10) {
+      hint.normalize();
+      // keep the animation's own bend (and knee splay) while it clearly agrees with the hint
+      if (!bent || pole.clone().normalize().dot(hint) < 0.2) pole = hint;
+    }
+  }
+  if (pole.lengthSq() < 1e-10) pole = perp(new THREE.Vector3(0, 0, 1));
   pole.normalize();
   const cosA = THREE.MathUtils.clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1);
   const knee = A.clone().addScaledVector(u, l1 * cosA).addScaledVector(pole, l1 * Math.sqrt(1 - cosA * cosA));
@@ -220,6 +232,10 @@ export function solveTwoBone(upper, lower, end, target) {
   setWorldQuat(end, endQ);
 }
 
+function legLenOf(l) {
+  return l.up.getWorldPosition(_v()).distanceTo(l.lo.getWorldPosition(_v())) + l.lo.getWorldPosition(_v()).distanceTo(l.ft.getWorldPosition(_v()));
+}
+
 function lockFeet(tgt, s) {
   const n = s.times.length;
   const legs = [['left', 'leftUpperLeg', 'leftLowerLeg', 'leftFoot'], ['right', 'rightUpperLeg', 'rightLowerLeg', 'rightFoot']]
@@ -227,6 +243,16 @@ function lockFeet(tgt, s) {
     .filter((l) => l.up && l.lo && l.ft && s.order.includes(l.up) && s.order.includes(l.lo) && s.order.includes(l.ft));
   if (!legs.length || n < 4) return null;
   tgt.restPose();
+  // Each foot's "toes forward" direction in its own local space, measured at rest; per frame it gives
+  // the side the knee bends toward.
+  legs.forEach((l) => {
+    const toe = tgt.bone(l.side + 'Toes');
+    const fq = l.ft.getWorldQuaternion(new THREE.Quaternion());
+    let fwd = toe ? toe.getWorldPosition(_v()).sub(l.ft.getWorldPosition(_v())) : new THREE.Vector3(0, 0, 1);
+    fwd.y = 0;
+    if (fwd.lengthSq() < 1e-8) fwd = new THREE.Vector3(0, 0, 1);
+    l.toeLocal = fwd.normalize().applyQuaternion(fq.invert());
+  });
   const legLen = legs[0].up.getWorldPosition(_v()).distanceTo(legs[0].lo.getWorldPosition(_v())) +
     legs[0].lo.getWorldPosition(_v()).distanceTo(legs[0].ft.getWorldPosition(_v()));
 
@@ -252,8 +278,8 @@ function lockFeet(tgt, s) {
     }
     const spans = spansFrom(flags);
     // Per-frame goal + weight: full lock inside spans, eased in/out over 4 frames.
-    const goal = new Float32Array(n * 3), w = new Float32Array(n);
-    const BL = 4;
+    const goal = new Float32Array(n * 3), w = new Float32Array(n), wsum = new Float32Array(n);
+    const BL = 7; // frames to ease in/out of each lock (~0.23 s at 30 fps)
     for (const [a, b] of spans) {
       let ax = 0, ay = 0, az = 0;
       for (let i = a; i <= b; i++) { ax += pos[k][i * 3]; ay += pos[k][i * 3 + 1]; az += pos[k][i * 3 + 2]; }
@@ -264,9 +290,14 @@ function lockFeet(tgt, s) {
       for (let i = Math.max(0, a - BL); i <= Math.min(n - 1, b + BL); i++) {
         const t = i < a ? (i - (a - BL)) / BL : i > b ? ((b + BL) - i) / BL : 1;
         const wt = t * t * (3 - 2 * t); // smoothstep
-        if (wt > w[i]) { w[i] = wt; goal.set([ax, ay, az], i * 3); }
+        // where two locks' easing overlaps, blend their footprints instead of jumping between them
+        if (wt > 1e-4) {
+          goal[i * 3] += ax * wt; goal[i * 3 + 1] += ay * wt; goal[i * 3 + 2] += az * wt;
+          wsum[i] += wt; w[i] = Math.max(w[i], wt);
+        }
       }
     }
+    for (let i = 0; i < n; i++) if (wsum[i] > 0) { goal[i * 3] /= wsum[i]; goal[i * 3 + 1] /= wsum[i]; goal[i * 3 + 2] /= wsum[i]; }
     return { l, k, spans, goal, w };
   });
 
@@ -277,7 +308,13 @@ function lockFeet(tgt, s) {
       if (p.w[i] <= 1e-3) continue;
       const cur = new THREE.Vector3(pos[p.k][i * 3], pos[p.k][i * 3 + 1], pos[p.k][i * 3 + 2]);
       const g = new THREE.Vector3(p.goal[i * 3], p.goal[i * 3 + 1], p.goal[i * 3 + 2]);
-      solveTwoBone(p.l.up, p.l.lo, p.l.ft, cur.lerp(g, p.w[i]));
+      const hint = p.l.toeLocal.clone().applyQuaternion(p.l.ft.getWorldQuaternion(new THREE.Quaternion()));
+      // never pull the leg dead straight: snapping straight and back reads as a knee pop
+      const hip = p.l.up.getWorldPosition(_v()), tgtPos = cur.lerp(g, p.w[i]);
+      const reach = p.l.reach || (p.l.reach = legLenOf(p.l));
+      const far = tgtPos.distanceTo(hip), maxR = reach * 0.985;
+      if (far > maxR) tgtPos.sub(hip).multiplyScalar(maxR / far).add(hip);
+      solveTwoBone(p.l.up, p.l.lo, p.l.ft, tgtPos, hint);
       for (const b of [p.l.up, p.l.lo, p.l.ft]) {
         const a = s.qv.get(b), q = b.quaternion;
         const prev = i > 0 ? [a[(i - 1) * 4], a[(i - 1) * 4 + 1], a[(i - 1) * 4 + 2], a[(i - 1) * 4 + 3]] : null;
