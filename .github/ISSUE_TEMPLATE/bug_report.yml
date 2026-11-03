@@ -1,0 +1,56 @@
+name: 🐞 Bug report
+description: Something broke, looked wrong in your engine, or was confusing.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The more detail, the faster it gets fixed. Confusing wording counts as a bug too.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: "I dropped in a 20 s video of a jump, picked Unreal 5, and in Unreal the character floats above the floor…"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      multiple: true
+      options:
+        - Video capture
+        - Auto-rig
+        - Animations / retargeting
+        - Health check / fixes
+        - Export / import into an engine
+        - Claude / MCP extension
+        - Installer (Install-Capture.bat)
+        - Wording / documentation
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: engine
+    attributes:
+      label: Game engine and version (if relevant)
+      placeholder: "Unreal Engine 5.5 / Godot 4.4 / Unity 6 + glTFast / Blender 4.3"
+  - type: input
+    id: system
+    attributes:
+      label: Your computer
+      placeholder: "Windows 11, RTX 4080 Laptop 12 GB, JustRigIt 0.3.0"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: |
+        Video capture: `%LOCALAPPDATA%\JustRigIt\capture\engine.log`. Installer: `capture\install_log.txt`.
+        In the app, open **Activity** at the bottom right and copy what's there.
+      render: text
+  - type: textarea
+    id: files
+    attributes:
+      label: Screenshots, clips or files
+      description: Drag images or short videos here. Only share characters and videos you're allowed to share.

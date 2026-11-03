@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 How to contribute
+    url: https://github.com/SuddleMercury/justrigit/blob/main/CONTRIBUTING.md
+    about: Setup, tests and how to send a change.

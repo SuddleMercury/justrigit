@@ -1,5 +1,8 @@
 # JustRigIt
 
+[![Tests](https://github.com/SuddleMercury/justrigit/actions/workflows/test.yml/badge.svg)](https://github.com/SuddleMercury/justrigit/actions/workflows/test.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+
 **Auto-rig, motion-capture from video and export game-ready characters for Unreal, Unity, Godot and Blender, locally.**
 
 Film yourself doing a move on your phone, drop the video in, and get that motion on your character: rigged, cleaned
@@ -10,7 +13,8 @@ No accounts, no uploads, no subscription. JustRigIt is free software, and it sta
 
 <p align="center"><b><a href="https://github.com/SuddleMercury/justrigit/releases">⬇ Download the latest release</a></b>
  · <a href="#how-it-works">How it works</a> · <a href="#everything-it-can-do">Features</a>
- · <a href="#let-claude-do-it-for-you">Use it with Claude</a></p>
+ · <a href="#let-claude-do-it-for-you">Use it with Claude</a>
+ · <a href="#contributing">Contribute</a></p>
 
 ## The problem
 Getting a character to *move* in a game is where most solo developers and small teams get stuck:
@@ -124,6 +128,25 @@ and *when you need it*, and sensible defaults everywhere. Advanced options are t
    The capture engine runs hidden and stops by itself when you close the window
    (log: `%LOCALAPPDATA%\JustRigIt\capture\engine.log`).
 4. *(Optional)* Download **`JustRigIt.mcpb`** and double-click it to add JustRigIt to Claude Desktop.
+
+## Roadmap & help wanted
+JustRigIt is open to contributions, and these are the big things it could use help with. Comment on (or open) an
+issue before starting something large.
+
+- **FBX export**, for engines and tools that don't read GLB well.
+- **Two or more people in one video** (fights, dances, partner moves).
+- **Face and lip-sync capture** from the same video.
+- **Video capture on Linux and macOS** (the engine is Python; the installer is Windows-only today).
+- **Non-human rigs**: quadrupeds, creatures with tails or wings.
+- **More built-in animations** (all must be free for commercial use).
+- **Better auto-rigging** for A-poses, loose clothing, and fists or mitten hands.
+- **Import guides and testing** for more engine versions (Unreal 5.x, Godot 4.x, Unity + glTFast).
+- **Translations** of the interface and guides.
+
+## Contributing
+Bug reports, ideas, tests with your own characters and engines, docs and code are all welcome.
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup (5 minutes, no GPU needed), tests and how to send a change.
+Every pull request is checked automatically.
 
 ## Run the web app
 - Open `dist/justrigit.html` in Chrome/Edge/Firefox — it's one self-contained file.

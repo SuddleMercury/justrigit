@@ -1,0 +1,60 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          npm ci
+          pip install numpy pytest
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Build app (dist/justrigit.html must be up to date)
+        run: |
+          npm run build
+          git diff --exit-code dist/justrigit.html || (echo "::error::Run 'npm run build' and commit dist/justrigit.html" && exit 1)
+
+      - name: Capture engine tests (Python)
+        run: python -m pytest -q capture/tests
+
+      - name: Core tests
+        run: |
+          node scripts/namingtest.mjs
+          node scripts/fingertest.mjs
+          node scripts/packfingertest.mjs
+
+      - name: MCP on a local computer (engine auto-start, files, async capture, snapshots)
+        run: node scripts/mcplocaltest.mjs
+
+      - name: Video capture end to end (demo engine)
+        run: |
+          (cd capture && python -m jrcapture serve --demo --exit-when-idle 600 &)
+          for i in $(seq 30); do curl -sf http://127.0.0.1:8790/status >/dev/null && break; sleep 1; done
+          node scripts/capturetest.mjs
+          node scripts/mcpcapturetest.mjs
+
+      - name: Claude Desktop extension builds and validates
+        run: |
+          npm run mcpb
+          npx --yes @anthropic-ai/mcpb validate build/mcpb/manifest.json

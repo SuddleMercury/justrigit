@@ -1,0 +1,25 @@
+name: 💡 Feature idea
+description: Suggest something JustRigIt should do.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the goal or the problem, not only the solution. ("I want to capture two people fighting" beats "add multi-person".)
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could JustRigIt help?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Want to help build it?
+      options:
+        - label: I'd like to work on this (or help test it)
