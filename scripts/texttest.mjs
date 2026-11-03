@@ -1,0 +1,16 @@
+import '../src/node/shims.js';
+import fs from 'fs';
+const { Forge } = await import('../src/core/forge.js');
+const { loadFromArrayBuffer } = await import('../src/core/character.js');
+const { unzipSync } = await import('fflate');
+const f = new Forge();
+console.log((await f.call('load_character', { base64: fs.readFileSync('testassets/Soldier.glb').toString('base64'), filename: 'Soldier.glb' })).message);
+let maps = 0; f.doc.root.traverse(o => { if (o.material?.map) maps++; }); console.log('textured materials in:', maps);
+await f.call('set_target', { engine: 'ue5' }); await f.call('apply_fix', { fix: 'all' });
+await f.call('add_animations', { pack: 'starter' });
+const ex = await f.call('export_bundle', { deliver: 'base64' });
+console.log(ex.message);
+const files = unzipSync(Buffer.from(ex.base64, 'base64')); const glb = files['SK_Soldier.glb'];
+const back = await loadFromArrayBuffer(glb.buffer.slice(glb.byteOffset, glb.byteOffset + glb.byteLength), 'x.glb');
+let out = 0, w = 0; back.root.traverse(o => { if (o.material?.map) { out++; w = o.material.map.image.width; } });
+console.log('textured materials after export+reimport:', out, 'texture width', w, '| clips', back.clips.length);

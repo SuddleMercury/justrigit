@@ -1,0 +1,130 @@
+// Plain-language explanations. Shown as ⓘ tooltips and available to AIs via explain_term.
+// Each entry: what it is, why it matters, when you care.
+export const GLOSSARY = {
+  skeleton: {
+    term: 'Skeleton / Rig',
+    what: 'An invisible set of connected "bones" inside a 3D character. Moving a bone moves the part of the mesh attached to it.',
+    why: 'Animations don\'t move the mesh directly — they move bones. No skeleton means no animation.',
+    when: 'Every animated character needs one. "Rigging" is the job of adding it.',
+  },
+  bone: {
+    term: 'Bone (Joint)',
+    what: 'One piece of the skeleton, like "upper arm" or "left foot". Bones form a tree: hand → forearm → upper arm → shoulder → spine.',
+    why: 'Bone names decide whether animations from another source can be matched to your character.',
+    when: 'You see bone names when retargeting, debugging, or attaching items (a sword to "hand_r").',
+  },
+  skinning: {
+    term: 'Skinning / Skin Weights',
+    what: 'The data saying how strongly each bone pulls each vertex of the mesh. An elbow vertex might be 50% upper arm, 50% forearm.',
+    why: 'Bad weights cause stretched or collapsing joints when the character moves.',
+    when: 'Created during rigging. glTF allows up to 4 bones per vertex.',
+  },
+  root_bone: {
+    term: 'Root Bone',
+    what: 'The very top bone of the skeleton, usually sitting on the floor between the feet. In Unreal it is literally named "root".',
+    why: 'Unreal moves the character\'s capsule using the root bone. Mixamo rigs don\'t have one — their top bone is the hips — which breaks root motion in Unreal.',
+    when: 'Always for Unreal. Optional elsewhere.',
+  },
+  root_motion: {
+    term: 'Root Motion',
+    what: 'When the animation itself carries the character forward (a walk that actually travels), stored on the root bone.',
+    why: 'Feet stay perfectly planted with no sliding, because the game moves the character exactly as far as the animation does.',
+    when: 'Great for attacks, dodges, climbing. In Unreal, turn on "Enable Root Motion" on the animation asset.',
+  },
+  in_place: {
+    term: 'In Place',
+    what: 'An animation with the forward travel removed — the character walks on the spot, like on a treadmill.',
+    why: 'Most beginner Unreal setups (Character Movement Component + Blend Space) move the character with code and expect in-place animations.',
+    when: 'Choose in-place for walk/run cycles in a standard third-person template. Choose root motion for special moves.',
+  },
+  retargeting: {
+    term: 'Retargeting',
+    what: 'Copying an animation made for one skeleton onto a different skeleton (different proportions or bone names).',
+    why: 'Lets one animation library work on every character you make.',
+    when: 'Any time the animation and character came from different places.',
+  },
+  rest_pose: {
+    term: 'Rest Pose / Bind Pose',
+    what: 'The pose the character was in when the skeleton was attached — usually a T-pose or A-pose.',
+    why: 'Retargeting compares rest poses. A big difference between them (T vs A) has to be compensated for.',
+    when: 'Shows up when importing, retargeting, or when an animation looks twisted.',
+  },
+  t_pose: {
+    term: 'T-Pose / A-Pose',
+    what: 'T-pose: arms straight out sideways. A-pose: arms angled down about 45°. Unreal\'s Manny/Quinn use an A-pose; Mixamo uses a T-pose.',
+    why: 'Neither is wrong, but tools must know which one you have to line animations up correctly.',
+    when: 'Mostly matters for retargeting.',
+  },
+  clip: {
+    term: 'Animation Clip (Sequence)',
+    what: 'One named animation, like "Walk" or "Jump_Start". Unreal calls these Animation Sequences.',
+    why: 'Each clip becomes its own asset in the engine that you can play from Blueprints.',
+    when: 'Every time you pick or export animations.',
+  },
+  glb: {
+    term: 'GLB / glTF',
+    what: 'An open 3D file format ("the JPEG of 3D"). GLB is the single-file binary version that packs mesh, skeleton, textures and animations together.',
+    why: 'Open standard, small files, supported natively by Unreal 5, Godot and Blender.',
+    when: 'Default export format here.',
+  },
+  fbx: {
+    term: 'FBX',
+    what: 'An older, closed 3D format owned by Autodesk. Very common in game pipelines.',
+    why: 'Most stores and Mixamo use it, so we can read it. Writing it reliably from a browser is hard, so we export GLB.',
+    when: 'Import only (for now).',
+  },
+  units: {
+    term: 'Units / Scale',
+    what: 'How big "1" is. glTF, Blender, Godot and Unity use meters; Unreal uses centimeters. FBX files often arrive in centimeters.',
+    why: 'A unit mix-up makes a character 100× too big or too small.',
+    when: 'The health check measures height and offers a fix if it looks wrong.',
+  },
+  forward_axis: {
+    term: 'Facing Direction',
+    what: 'Which way the character looks in its rest pose. The glTF standard is facing +Z (towards you in this viewer).',
+    why: 'If it faces the wrong way, it will walk sideways or backwards in the engine.',
+    when: 'Checked automatically.',
+  },
+  blend_space: {
+    term: 'Blend Space',
+    what: 'An Unreal asset that mixes several animations based on values like speed and direction — idle at 0, walk at 150, run at 400.',
+    why: 'This is how smooth 8-direction locomotion is built in Unreal.',
+    when: 'After importing your locomotion clips.',
+  },
+  mcp: {
+    term: 'MCP (Model Context Protocol)',
+    what: 'An open standard that lets AI assistants (Claude, ChatGPT and others) call an app\'s tools directly instead of clicking around the screen.',
+    why: 'Means you can say "rig my character and export it for Unreal" and the AI does it through this app\'s real commands.',
+    when: 'In the AI tab. WebMCP is the browser version.',
+  },
+  motion_capture: {
+    term: 'Motion Capture (mocap)',
+    what: 'Recording a real person\'s movement and turning it into animation. JustRigIt Capture does it from an ordinary video: an AI model (NVIDIA GEM-X) estimates the 3D pose of the body and fingers in every frame.',
+    why: 'Hand-animating a convincing sword swing or dance takes days; filming yourself takes a minute.',
+    when: 'Any action you can perform: attacks, emotes, interactions, cutscenes. Use the built-in library for basic locomotion.',
+  },
+  foot_locking: {
+    term: 'Foot Locking (anti foot-slide)',
+    what: 'Pinning a foot to the floor while it is planted, then bending the leg (with IK) so the rest of the body still moves as captured.',
+    why: 'Captured or retargeted motion often makes planted feet slide or "skate" a few centimetres — players notice it immediately.',
+    when: 'On by default for video captures. JustRigIt reports the sliding before → after.',
+  },
+  ik: {
+    term: 'IK (Inverse Kinematics)',
+    what: 'Working backwards from where a hand or foot must be to how the joints above it bend. "Put the foot here" → the knee and hip angles are solved for you.',
+    why: 'Keeps feet on the ground and hands on objects even when the character\'s proportions differ from the performer\'s.',
+    when: 'Foot locking, aiming, climbing, placing feet on stairs (Unreal\'s Control Rig / Godot\'s SkeletonIK3D).',
+  },
+  soma: {
+    term: 'SOMA skeleton',
+    what: 'NVIDIA\'s standard 78-joint human skeleton (body, fingers, toes) that the GEM-X capture model records motion on.',
+    why: 'Every capture comes out on the same skeleton, so JustRigIt can retarget it onto any character reliably.',
+    when: 'You only see it if you download the raw capture (GLB/BVH) to use in another tool.',
+  },
+  bone_naming: {
+    term: 'Skeleton Naming Standard',
+    what: 'The set of bone names a tool expects: Unreal\'s Mannequin (pelvis, thigh_l…), Mixamo (mixamorig:Hips…), or Godot\'s SkeletonProfileHumanoid (Hips, LeftUpperLeg…).',
+    why: 'Engines recognise a humanoid by its bone names. With the standard names, Unreal\'s IK Retargeter, Godot\'s BoneMap and Unity\'s Humanoid avatar map the skeleton automatically — so animations can be shared between characters.',
+    when: 'Chosen automatically from your destination; change it on the Export step (e.g. Mixamo names for a Unity or Blender pipeline).',
+  },
+};

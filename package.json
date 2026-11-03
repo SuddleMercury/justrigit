@@ -1,0 +1,40 @@
+{
+  "name": "justrigit",
+  "version": "0.3.0",
+  "description": "JustRigIt \u2014 auto-rig, retarget, fix and export 3D characters for Unreal, Unity, Godot and Blender. Web app + MCP server.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "mcpb": "node scripts/build-mcpb.mjs",
+    "mcp": "node src/node/mcp-server.mjs",
+    "mcp:http": "node src/node/mcp-server.mjs --http 8787",
+    "test": "node scripts/m2test.mjs && node scripts/mcptest.mjs"
+  },
+  "keywords": [],
+  "author": "SuddleMercury",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@napi-rs/canvas": "^1.1.0",
+    "fflate": "^0.8.3",
+    "three": "^0.187.0",
+    "three-mesh-bvh": "^0.9.17"
+  },
+  "type": "module",
+  "bin": {
+    "justrigit-mcp": "src/node/mcp-server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SuddleMercury/justrigit.git"
+  },
+  "homepage": "https://github.com/SuddleMercury/justrigit",
+  "bugs": {
+    "url": "https://github.com/SuddleMercury/justrigit/issues"
+  }
+}
