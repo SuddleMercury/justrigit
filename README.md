@@ -2,40 +2,128 @@
 
 **Auto-rig, motion-capture from video and export game-ready characters for Unreal, Unity, Godot and Blender, locally.**
 
-Film yourself on a phone, drop the video in, and get that motion on your character: rigged, cleaned up and named the
-way your game engine expects. Everything runs on your own computer and GPU. No accounts, no uploads, no subscription.
-JustRigIt is free software, and it stays free (see [License](#license)).
+Film yourself doing a move on your phone, drop the video in, and get that motion on your character: rigged, cleaned
+up, feet planted, and named the way your game engine expects. Everything runs on your own computer and GPU.
+No accounts, no uploads, no subscription. JustRigIt is free software, and it stays free ([License](#license)).
 
-## Download
-Go to **[Releases](https://github.com/SuddleMercury/justrigit/releases)** and download:
-- **`justrigit-vX.Y.Z.zip`**: the app. Unzip it and double-click `Start-JustRigIt.bat`.
-  For video capture, run `Install-Capture.bat` once (Windows 10/11 with an NVIDIA RTX GPU, about 10 GB).
-- **`JustRigIt.mcpb`** *(optional)*: lets Claude use JustRigIt for you. Double-click it with Claude Desktop installed.
+![JustRigIt: a captured animation playing on the character, ready to download](docs/screenshots/03-character.png)
 
-## What it does
-1. **Auto-rig** — drop in a mesh with no skeleton, check 8 markers (chin, wrists, elbows, knees, groin),
-   press *Rig it*. Builds a 55-bone Unreal-mannequin-style skeleton (fingers included) with heat-diffusion skin weights.
-2. **Destination first** — pick the engine; naming, units, root bone and guide follow from it.
-3. **Health check + one-click fixes** — scale/units, floor, facing, missing root bone, duplicate bones.
-4. **Animations** — 26 built-in CC0 clips (idle, walk/run in 8 directions, jumps, crouch, wave) in packs,
-   or drop any animation file (Mixamo, Quaternius, Unreal, Blender): it's retargeted onto your character.
-   In-place or root motion per clip.
-5. **Motion capture from video** *(new in 0.3)* — film yourself on a phone, drop the video in, get the
-   animation on your character. NVIDIA GEM-X runs on your own GPU (body + fingers, world motion);
-   planted feet are pinned with IK (**foot locking**). See [`capture/README.md`](capture/README.md).
-6. **Engine-standard skeletons** *(new in 0.3)* — exports use the bone names each engine auto-maps:
-   Unreal Mannequin (`pelvis`, `thigh_l` …), **Godot SkeletonProfileHumanoid** (`Hips`, `LeftUpperLeg` …)
-   or **Mixamo** (`mixamorig:Hips` …) — automatic per destination, or pick one.
-7. **Export** — zip with GLB + an import guide written for those exact files (incl. a full Unreal
-   8-direction Blend Space walkthrough in Blueprints) + a replayable recipe.
+<p align="center"><b><a href="https://github.com/SuddleMercury/justrigit/releases">⬇ Download the latest release</a></b>
+ · <a href="#how-it-works">How it works</a> · <a href="#everything-it-can-do">Features</a>
+ · <a href="#let-claude-do-it-for-you">Use it with Claude</a></p>
 
-## Quick start (Windows)
-- **`Start-JustRigIt.bat`** — opens JustRigIt in its own window. The home screen is **Video to animation**
-  (drop a video → pick a character → download for Unreal/Godot/Unity/Blender). The capture engine runs hidden
-  and stops by itself after you close the window (log: `%LOCALAPPDATA%\JustRigIt\capture\engine.log`).
-  Rigging, the animation library and health checks are under **Rig & animate (advanced)**.
-- **`Install-Capture.bat`** — one-time setup for video motion capture (~8 GB of model files).
-  `Install-Capture.bat -DemoOnly` sets up a 1-minute demo version first.
+## The problem
+Getting a character to *move* in a game is where most solo developers and small teams get stuck:
+
+- **Motion capture is expensive.** Mocap suits and studios cost thousands. Cloud video-mocap services charge
+  monthly subscriptions or per-minute credits, and you have to upload your footage to someone else's servers.
+- **Free animation libraries only go so far.** You get the moves someone else recorded, on their skeleton, behind
+  their account and terms. The moment you need *your* move (a specific attack, a dance, an emote), you're stuck.
+- **Rigging is a skill of its own.** A character fresh out of a sculpting tool or an AI generator has no skeleton.
+  Rigging it by hand in Blender takes hours and plenty of tutorials.
+- **Every engine wants something different.** Unreal expects `pelvis` and `thigh_l`, Godot expects `Hips` and
+  `LeftUpperLeg`, Mixamo uses `mixamorig:Hips`. Get the names, scale, root bone or facing wrong and the import
+  breaks: characters lying on their side, 100× too big, sliding feet, animations that won't retarget.
+- **Beginners get buried in jargon** before they ever see their character move.
+
+JustRigIt puts all of that into one free tool that runs on your own PC, in plain language, step by step.
+
+## How it works
+**1. Drop in a video.** Film yourself on a phone (propped up is best), whole body in view. Up to 60 seconds per clip.
+
+![Step 1: drop in your video](docs/screenshots/01-video.png)
+
+**2. The AI turns it into motion, on your GPU.** NVIDIA's GEM-X model tracks your whole body *including fingers*
+and how you move through the room. JustRigIt then cleans the motion up: finds the floor, faces it forward, smooths
+the jitter and **locks planted feet** so they don't slide. Your video never leaves your computer.
+
+![Step 2: capturing, on your own GPU](docs/screenshots/02-capturing.png)
+
+**3. Put it on a character.** Use the built-in practice mannequin, or drop in your own character (GLB/GLTF/FBX).
+No skeleton? JustRigIt adds one. Rename your clips here: that's the name you'll see in your engine.
+
+**4. Download for your engine.** Pick Unreal Engine 5, Godot 4, Unity or Blender, and choose whether the animation
+"stays in place" (for walk and run loops your game moves) or "moves like in the video" (root motion, for attacks and
+dodges). You get a zip with the character, the animations, and an import guide written for those exact files.
+
+![Step 4: download for your game engine](docs/screenshots/04-download.png)
+
+## Everything it can do
+### 🎥 Motion capture from video
+- **Body, fingers and world motion** from one ordinary video ([NVIDIA GEM-X](https://github.com/NVlabs/GEM-X), runs
+  locally on NVIDIA RTX GPUs).
+- **Clean-up built in:** floor detection, gravity alignment, forward facing, start at the origin, zero-lag smoothing.
+- **Foot locking:** detects when each foot is planted and pins it with IK (inverse kinematics), so feet don't skate.
+- Phone on a stand or handheld; trim long videos with a start time and length; capture several moves and keep them all.
+
+### 🦴 Auto-rigging, fingers included
+Drop in a character with no skeleton. JustRigIt guesses 8 markers (chin, wrists, elbows, knees, groin); you nudge
+them if needed and press **Rig it**. You get a 55-bone, Unreal-Mannequin-style skeleton **with fingers and thumbs**,
+and skin weights calculated automatically (heat diffusion), in a couple of seconds.
+
+| Place the markers | Rigged and recognised as an Unreal Mannequin |
+|---|---|
+| ![Auto-rig markers](docs/screenshots/05-markers.png) | ![Auto-rigged skeleton](docs/screenshots/06-skeleton.png) |
+
+### 🩺 Health check with one-click fixes
+Catches the problems that would otherwise turn into a broken import, *before* you export: wrong scale or units,
+character floating or sunk into the floor, facing the wrong way, missing root bone, duplicate bones. Each issue is
+explained in plain language, with a **Fix** button.
+
+![Health check](docs/screenshots/07-health.png)
+
+### 🏃 Animation library and retargeting
+- **26 built-in animations**, free for commercial use: idle, walk and run in 8 directions, jumps, crouch, wave.
+  They come in packs, like "8-direction locomotion" ready for an Unreal Blend Space.
+- **Bring your own animations:** drop any rigged animation file (Mixamo, Quaternius, Unreal, Blender exports) and
+  it's **retargeted** onto your character, fingers included when both skeletons have them.
+- Preview everything on *your* character before adding it. In-place or root motion per clip.
+
+![Animation packs](docs/screenshots/08-animations.png)
+
+### 🎮 Exports that just import
+- **Engine-standard bone names, automatically:** Unreal Mannequin (`pelvis`, `thigh_l`, `index_01_l` …),
+  Godot SkeletonProfileHumanoid (`Hips`, `LeftUpperLeg`, `LeftIndexProximal` …) or Mixamo (`mixamorig:Hips` …).
+  The engine maps the skeleton for you.
+- **GLB files** (the open glTF standard) that Unreal 5 and Godot 4 import natively; Unity via the free glTFast package.
+- **An import guide for your exact files**, including a full Unreal Blueprint walkthrough for an 8-direction Blend
+  Space, written for beginners.
+- A replayable **recipe**, so you can redo the same steps on another character.
+
+### 🤖 Let Claude do it for you
+JustRigIt is built so AI assistants can operate it: every button is also a command. Install the **Claude Desktop
+extension** (`JustRigIt.mcpb` from the releases) and just ask:
+
+> *"Find my latest video, turn it into an animation on my alien character and export it for Unreal."*
+
+Claude finds the files, rigs the character, runs the capture (starting the engine if needed), **looks at the result**
+to check it, and exports to your `Documents\JustRigIt Exports` folder. It all happens on your computer.
+
+| What Claude sees when it checks its work | Built-in AI access |
+|---|---|
+| ![Rendered views Claude uses to check a pose](docs/screenshots/10-ai-view.png) | ![AI access panel](docs/screenshots/09-ai-access.png) |
+
+### 💬 Made for beginners
+Plain-language steps, a glossary of every term (skeleton, root motion, retargeting, IK…) with *why it matters*
+and *when you need it*, and sensible defaults everywhere. Advanced options are there when you want them.
+
+## Requirements
+- **The app** (rigging, library, retargeting, export): Windows, macOS or Linux, any modern browser
+  (Edge, Chrome, Firefox). `dist/justrigit.html` is a single self-contained file.
+- **Video motion capture:** Windows 10/11, NVIDIA RTX GPU with 8 GB+ VRAM (12 GB recommended), about 15 GB of disk
+  for the AI model. `Install-Capture.bat` sets everything up (Python, PyTorch, ffmpeg, the model) in one go.
+- **Claude extension:** [Claude Desktop](https://claude.ai/download). Nothing else to install.
+
+## Download and quick start (Windows)
+1. Download **`justrigit-vX.Y.Z.zip`** from **[Releases](https://github.com/SuddleMercury/justrigit/releases)**
+   and unzip it.
+2. Double-click **`Install-Capture.bat`** once, for video capture (`Install-Capture.bat -DemoOnly` sets up a
+   1-minute practice version first).
+3. Double-click **`Start-JustRigIt.bat`**. JustRigIt opens in its own window, with **Video to animation** as the
+   home screen. Rigging, the animation library and health checks are under **Rig & animate (advanced)**.
+   The capture engine runs hidden and stops by itself when you close the window
+   (log: `%LOCALAPPDATA%\JustRigIt\capture\engine.log`).
+4. *(Optional)* Download **`JustRigIt.mcpb`** and double-click it to add JustRigIt to Claude Desktop.
 
 ## Run the web app
 - Open `dist/justrigit.html` in Chrome/Edge/Firefox — it's one self-contained file.
